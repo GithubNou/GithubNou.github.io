@@ -25,4 +25,5 @@ div {
   max-width: 100%; /* Adjust the width as needed */
   height: auto; /* Automatically adjust the height to maintain aspect ratio */
   display: block; /* Ensure the image is displayed as a block element */
+  margin-bottom:0.5em;
 }
