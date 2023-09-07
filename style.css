@@ -1,0 +1,24 @@
+span.blockspam {
+  display: none;
+    
+}
+
+body {
+  margin-top: 1.5em;
+  margin-right: 1.5em;
+  margin-left: 1.5em;
+  background-color: white;
+  font-family: Helvetica;
+  text-align: left;
+  line-height:0.3em;
+  font-weight: thin ;
+}
+
+p1 {
+  line-height:0.0em;
+  font-weight: bold;
+  font-family: Helvetica;
+  font-size: 1em;
+  color: black;
+
+}
