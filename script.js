@@ -1,8 +1,8 @@
 // define your images here
 var images = [
-  "https://github.com/GithubNou/website/blob/main/cedre_ultralowres_samifarra-2.jpg?raw=true",
-  "https://github.com/GithubNou/website/blob/main/cedre_ultralowres_samifarra-17.jpg?raw=true",
-  "https://github.com/GithubNou/website/blob/main/cedre_ultralowres_samifarra-8.jpg?raw=true"
+  "cedre_ultralowres_samifarra-2.jpg",
+  "cedre_ultralowres_samifarra-17.jpg",
+  "cedre_ultralowres_samifarra-8.jpg"
 ];
 
 // initialize the index of the current image
