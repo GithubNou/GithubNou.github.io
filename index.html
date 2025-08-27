@@ -6,6 +6,7 @@
   <title>ATELIER NOU - URBANISTES ARCHITECTES EPFL SIA FSU</title>
 
   <style>
+    /* Hide spam bait */
     span.blockspam { display: none; }
 
     body {
@@ -16,35 +17,50 @@
       background-color: #f5f5f5;
     }
     p { margin: 0; }
-    
-    /* Make links look like plain text */
-a {
-  color: inherit;
-  text-decoration: none;
-  font: inherit;
-}
-a:hover, a:focus {
-  text-decoration: underline;
-}
+
+    /* Make links look like plain text, but remain clickable */
+    a {
+      color: inherit;
+      text-decoration: none;
+      font: inherit;
+    }
+    a:hover, a:focus {
+      text-decoration: underline;
+      outline: none;
+    }
 
     #main-container { display: inline-block; max-width: 100%; }
 
+    /* Image area */
     #img-container {
       position: relative;
       margin-bottom: 0.5em;
       width: 100%;
-      max-height: 800px;
     }
 
-    #img-load img {
-      max-height: 800px;
-      max-width: 100%;
-      height: auto;
+    /* Center the image; cap height at 800px */
+    #img-load {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
+      max-height: 800px;     /* hard cap */
+      overflow: hidden;      /* avoid overflow in odd cases */
+    }
+
+    /* Let image pick limiting dimension without distortion */
+    #img-load img {
+      width: auto;           /* do NOT force 100% width (prevents Safari distortions) */
+      height: auto;
+      max-width: 100%;
+      max-height: 800px;     /* hard cap */
       display: block;
       margin: 0;
       cursor: pointer;
     }
+
+    /* Safari flex quirk guards */
+    #img-load, #img-load img { min-width: 0; min-height: 0; }
 
     #content-wrapper {
       display: flex;
@@ -74,15 +90,19 @@ a:hover, a:focus {
 
     /* Responsive: stack text below image on small screens */
     @media (max-width: 768px) {
-      #image-description, #contact-info { width: 100%; max-width: 100%; text-align: left; }
+      #image-description, #contact-info {
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+      }
     }
   </style>
 </head>
 <body>
   <div id="main-container">
     <div id="img-container">
-      <!-- tabindex allows focusing with keyboard -->
-      <div id="img-load" aria-live="polite" tabindex="0"></div>
+      <!-- Focusable, operable by keyboard, announced as a button -->
+      <div id="img-load" aria-live="polite" tabindex="0" role="button" aria-label="Changer l’image"></div>
     </div>
 
     <div id="content-wrapper">
@@ -115,13 +135,31 @@ a:hover, a:focus {
       { src: "Estavayer1.jpg",                     description: "Maison à Estavayer, 2009" }
     ];
 
+    // Which images may appear first
     var possibleInitialImages = [0, 1];
     var currentIndex = possibleInitialImages[Math.floor(Math.random() * possibleInitialImages.length)];
 
     function renderImage(index) {
       var data = images[index];
-      var imgHTML = "<img src='" + data.src + "' alt='" + data.description + "'>";
-      document.getElementById("img-load").innerHTML = imgHTML;
+      var container = document.getElementById("img-load");
+
+      // Create the <img> node so we can hook onload
+      var imgEl = new Image();
+      imgEl.alt = data.description;
+      imgEl.src = data.src;
+      imgEl.tabIndex = -1; // the wrapper holds focus
+
+      // Help Safari: set CSS aspect-ratio from natural dimensions when known
+      imgEl.onload = function () {
+        try {
+          imgEl.style.aspectRatio = this.naturalWidth + " / " + this.naturalHeight;
+        } catch (e) { /* ignore if unsupported */ }
+      };
+
+      // Swap image
+      container.replaceChildren(imgEl);
+
+      // Description
       document.getElementById("image-description").textContent = data.description;
     }
 
@@ -134,14 +172,23 @@ a:hover, a:focus {
       renderImage(currentIndex);
     }
 
-    // Click to cycle
-    document.getElementById("img-load").addEventListener("click", () => changeImage(true));
+    // Click to go next
+    document.getElementById("img-load").addEventListener("click", function () {
+      changeImage(true);
+    });
 
-    // Keyboard support
-    document.addEventListener("keydown", function(e) {
-      if (e.key === "ArrowRight" || e.key === " ") {
+    // Keyboard support (→ / ← / Space / Enter)
+    document.addEventListener("keydown", function (e) {
+      // only act if focus is on body or the image area (prevents interfering with text selection, etc.)
+      var active = document.activeElement;
+      var okTarget = (active === document.body) || (active && active.id === "img-load");
+      if (!okTarget) return;
+
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "Spacebar" || e.key === "Enter") {
+        e.preventDefault(); // stop page scroll on Space
         changeImage(true);
       } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
         changeImage(false);
       }
     });
@@ -149,7 +196,7 @@ a:hover, a:focus {
     // Initial render
     renderImage(currentIndex);
 
-    // Preload others
+    // Preload others to reduce lag
     (function preloadOthers() {
       for (var i = 0; i < images.length; i++) {
         if (i === currentIndex) continue;
